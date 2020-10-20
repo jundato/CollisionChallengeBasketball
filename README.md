@@ -1,6 +1,8 @@
 # CollisionChallengeBasketball
 This is a code challenge scaffolding for playing with 2D Collisions and User Experience!
 
+[Play the basic game here](https://acreeser.github.io/CollisionChallengeBasketball/)
+
 ## The App
 * Drag-and-release your mouse to sling a basketball towards the goal
 * Currently only supported on Desktop
