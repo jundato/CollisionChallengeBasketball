@@ -12,7 +12,9 @@ This is a code challenge scaffolding for playing with 2D Collisions and User Exp
 ## The Challenge
 * Implement collisions for the rim and backboard of the goal
 * Detect collisions with the inner goal area
-* Show a visual message to the user that they scored!
+* Show a visual message to the user that they scored! Bonus points if it's flashy and has transitions or animations.
+
+> What counts as a visual message? Display some text in the middle of the screen, shoot emojis like confetti, or animate a dancing baby! (Don't do that last one)
 
 ## The Code
 The areas of the code left for implementation are in `main.js`
@@ -51,5 +53,6 @@ function checkGoal(ballX, ballY, ballHW) {
 ```
 function onGoal(ballNumber) {
     //TODO: show a visual indicator the user scored
+    //it's encouraged to append elements to the body and then style them in CSS
 }
 ```
