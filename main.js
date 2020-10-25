@@ -5,6 +5,7 @@
     var roll_damp = 1 - 0.02;
     var air_damp = 1 - 0.000;
     var ball_w = 80; var ball_h = ball_w;
+    var ball_radius = ball_w / 2
 
     var goal_w = 150;
     var goal_h = 50;
@@ -15,6 +16,8 @@
     var rim_front_h = goal_h; var rim_back_h = goal_h * 3;
     var rim_front_x = goal_x - rim_w; var rim_front_y = goal_y;
     var rim_back_x = goal_x + goal_w; var rim_back_y = goal_y;
+
+    
 
     var goals = document.getElementsByClassName('goal');
     for (var gi = 0; gi < goals.length; gi++) {
@@ -81,19 +84,43 @@
             vel_y: vel_y
         }
     }
+    function checkRectangleCollission(tBallX, tBallY, tRectX, tRectY, rect_w, rect_h){
+        var circleDistanceX = Math.abs(tBallX - tRectX);
+        var circleDistanceY = Math.abs(tBallY - tRectY);
+    
+        if (circleDistanceX > (rect_w/2 + ball_radius)) { return { direction: 0, collided: false } }
+        if (circleDistanceY > (rect_h/2 + ball_radius)) { return { direction: 0, collided: false };}
+    
+        if (circleDistanceX <= (rect_w/2)) { return { direction: tBallX > tRectX ? 1 : - 1, collided: false }; } 
+        if (circleDistanceY <= (rect_h/2)) { return { direction: 0, collided: false }; }
+
+        cornerDistance_sq = (circleDistanceX - rect_w/2)* (circleDistanceX - rect_w/2)+
+                             (circleDistanceY - rect_h/2)* (circleDistanceY - rect_h/2);
+    
+        return (cornerDistance_sq <= (ball_radius*ball_radius)) ?  { direction: tBallX > tRectX ? 1 : - 1, collided: true } : { direction: 0, collided: false } ;
+    }
+
     function checkRimCollisions(ballX, ballY, vel_x, vel_y) {
         //available dimensions:
         // ball_w, ball_h
-        // rim_w
+        // rim_w 
         // rim_front_h, rim_front_x, rim_front_y
         // rim_back_h, rim_back_x, rim_back_y
 
-        // ball has a radius of ball_w/2
-        // ballX and ballY are the bottom-left corner of the ball
-        // ballX and ballY are the PAST version of the ball
-        // vel_x and vel_y will be ADDED to ballX and ballY after this function
+        var true_ball_x = ballX + (ball_w / 2);
+        var true_ball_y = ballY + (ball_w / 2);
+        var true_front_rim_x = rim_front_x + (rim_w / 2); 
+        var true_front_rim_y = rim_front_y + (rim_front_h / 2);
 
-        //TODO: change vel_x and vel_y to "bounce" off of rim and backboard
+        var front_rim_collision = checkRectangleCollission(true_ball_x, true_ball_y, true_front_rim_x, true_front_rim_y, rim_w, rim_front_h);
+    
+        var true_back_rim_x = rim_back_x + (rim_w / 2); 
+        var true_back_rim_y = rim_back_y + (rim_back_h / 2);
+        var back_rim_collision = checkRectangleCollission(true_ball_x, true_ball_y, true_back_rim_x, true_back_rim_y, rim_w, rim_front_h);
+        
+        if(front_rim_collision.collided || back_rim_collision.collided){
+            vel_x = vel_x * bounce_damp*back_rim_collision.direction;
+        }
 
         return {
             vel_x: vel_x,
@@ -153,7 +180,7 @@
             }
             ball.style.bottom = y + 'px';
             ball.style.left = x + 'px';
-            ball.children[0].innerText = vel_x.toFixed(2) + ',' + vel_y.toFixed(2);
+            ball.children[0].innerText =  x + '|' + y;
             ball.dataset['x'] = x;
             ball.dataset['vx'] = vel_x;
             ball.dataset['y'] = y;
