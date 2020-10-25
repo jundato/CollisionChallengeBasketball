@@ -17,7 +17,8 @@
     var rim_front_x = goal_x - rim_w; var rim_front_y = goal_y;
     var rim_back_x = goal_x + goal_w; var rim_back_y = goal_y;
 
-    
+    var goalCooldown = 1000;
+    var allowGoal = true;
 
     var goals = document.getElementsByClassName('goal');
     for (var gi = 0; gi < goals.length; gi++) {
@@ -84,15 +85,19 @@
             vel_y: vel_y
         }
     }
-    function checkRectangleCollission(tBallX, tBallY, tRectX, tRectY, rect_w, rect_h){
+    function checkRectangleCollission(ballX, ballY, tRectX, tRectY, rect_w, rect_h){
+
+        var tBallX = ballX + (ball_w / 2);
+        var tBallY = ballY + (ball_w / 2);
+
         var circleDistanceX = Math.abs(tBallX - tRectX);
         var circleDistanceY = Math.abs(tBallY - tRectY);
     
         if (circleDistanceX > (rect_w/2 + ball_radius)) { return { direction: 0, collided: false } }
         if (circleDistanceY > (rect_h/2 + ball_radius)) { return { direction: 0, collided: false };}
     
-        if (circleDistanceX <= (rect_w/2)) { return { direction: tBallX > tRectX ? 1 : - 1, collided: false }; } 
-        if (circleDistanceY <= (rect_h/2)) { return { direction: 0, collided: false }; }
+        if (circleDistanceX <= (rect_w/2)) { return { direction: 0, collided: true }; } 
+        if (circleDistanceY <= (rect_h/2)) { return { direction: 0, collided: true }; }
 
         cornerDistance_sq = (circleDistanceX - rect_w/2)* (circleDistanceX - rect_w/2)+
                              (circleDistanceY - rect_h/2)* (circleDistanceY - rect_h/2);
@@ -107,19 +112,16 @@
         // rim_front_h, rim_front_x, rim_front_y
         // rim_back_h, rim_back_x, rim_back_y
 
-        var true_ball_x = ballX + (ball_w / 2);
-        var true_ball_y = ballY + (ball_w / 2);
         var true_front_rim_x = rim_front_x + (rim_w / 2); 
         var true_front_rim_y = rim_front_y + (rim_front_h / 2);
-
-        var front_rim_collision = checkRectangleCollission(true_ball_x, true_ball_y, true_front_rim_x, true_front_rim_y, rim_w, rim_front_h);
+        var front_rim_collision = checkRectangleCollission(ballX, ballY, true_front_rim_x, true_front_rim_y, rim_w, rim_front_h);
     
         var true_back_rim_x = rim_back_x + (rim_w / 2); 
         var true_back_rim_y = rim_back_y + (rim_back_h / 2);
-        var back_rim_collision = checkRectangleCollission(true_ball_x, true_ball_y, true_back_rim_x, true_back_rim_y, rim_w, rim_front_h);
+        var back_rim_collision = checkRectangleCollission(ballX, ballY, true_back_rim_x, true_back_rim_y, rim_w, rim_front_h);
         
         if(front_rim_collision.collided || back_rim_collision.collided){
-            vel_x = vel_x * bounce_damp*back_rim_collision.direction;
+            vel_x = back_rim_collision.direction - vel_x * bounce_damp;
         }
 
         return {
@@ -132,12 +134,15 @@
         // goal_w, goal_h
         // goal_x, goal_y
 
-        //TODO: return TRUE when ball is in goal
+        var true_goal_x = goal_x + (goal_w / 2); 
+        var true_goal_y = goal_y + (goal_h / 2);
+        var goalCollision = checkRectangleCollission(ballX, ballY, true_goal_x, true_goal_y, goal_w, goal_h);
 
-        return false;
+        return goalCollision.collided;
     }
     function onGoal(ballNumber) {
         //TODO: show a visual indicator the user scored
+        console.log(ballNumber);
     }
     function loop(time) {
         // Compute the delta-time against the previous time
@@ -176,7 +181,13 @@
             x += vel_x;
             y -= vel_y;
             if (checkGoal(x, y, ball_w)) {
-                onGoal(+ball.dataset['number']);
+                if(allowGoal){
+                    allowGoal = false;
+                    setTimeout(() => {
+                        allowGoal = true;
+                    }, goalCooldown);
+                    onGoal(+ball.dataset['number']);
+                }
             }
             ball.style.bottom = y + 'px';
             ball.style.left = x + 'px';
