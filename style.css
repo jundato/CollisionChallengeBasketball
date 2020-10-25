@@ -53,3 +53,29 @@ span{
     height: 200px;
     width: 10px;
 }
+#goal-count-text{
+    position: absolute;
+    color: orange;
+    font-size: 32px;
+    font-weight: bold;
+    left: 0px;
+    bottom: 0px;
+}
+.goal-text{
+    position: absolute;
+    color: gold;
+    animation-name: example;
+    animation-duration: 2s;
+    width: 300px;
+    text-align: center;
+    opacity: 0;
+    font-weight: bold;
+    user-select: none;
+}
+
+@keyframes example {
+    0%   {color: yellow; opacity: 0; bottom: 450px; font-size: 32px;}
+    75%  {color: yellow; opacity: 1;  font-size: 64px;}
+    100% {color: orange; opacity: 0;bottom: 600px;}
+  }
+  

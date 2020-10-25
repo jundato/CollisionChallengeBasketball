@@ -5,6 +5,7 @@
     var roll_damp = 1 - 0.02;
     var air_damp = 1 - 0.000;
     var ball_w = 80; var ball_h = ball_w;
+    var ball_radius = ball_w / 2
 
     var goal_w = 150;
     var goal_h = 50;
@@ -16,6 +17,9 @@
     var rim_front_x = goal_x - rim_w; var rim_front_y = goal_y;
     var rim_back_x = goal_x + goal_w; var rim_back_y = goal_y;
 
+    var goalCooldown = 500;
+    var allowGoal = true;
+    var goalMessages = ['Nice!', 'Good Job!!', 'Awesome!!!']
     var goals = document.getElementsByClassName('goal');
     for (var gi = 0; gi < goals.length; gi++) {
         var g = goals[gi];
@@ -81,19 +85,44 @@
             vel_y: vel_y
         }
     }
+    function checkRectangleCollission(ballX, ballY, tRectX, tRectY, rect_w, rect_h){
+
+        var tBallX = ballX + (ball_w / 2);
+        var tBallY = ballY + (ball_w / 2);
+
+        var circleDistanceX = Math.abs(tBallX - tRectX);
+        var circleDistanceY = Math.abs(tBallY - tRectY);
+    
+        if (circleDistanceX > (rect_w/2 + ball_radius)) { return { direction: 0, collided: false } }
+        if (circleDistanceY > (rect_h/2 + ball_radius)) { return { direction: 0, collided: false };}
+    
+        if (circleDistanceX <= (rect_w/2)) { return { direction: 0, collided: true }; } 
+        if (circleDistanceY <= (rect_h/2)) { return { direction: 0, collided: true }; }
+
+        cornerDistance_sq = (circleDistanceX - rect_w/2)* (circleDistanceX - rect_w/2)+
+                             (circleDistanceY - rect_h/2)* (circleDistanceY - rect_h/2);
+    
+        return (cornerDistance_sq <= (ball_radius*ball_radius)) ?  { direction: tBallX > tRectX ? 1 : - 1, collided: true } : { direction: 0, collided: false } ;
+    }
+
     function checkRimCollisions(ballX, ballY, vel_x, vel_y) {
         //available dimensions:
         // ball_w, ball_h
-        // rim_w
+        // rim_w 
         // rim_front_h, rim_front_x, rim_front_y
         // rim_back_h, rim_back_x, rim_back_y
 
-        // ball has a radius of ball_w/2
-        // ballX and ballY are the bottom-left corner of the ball
-        // ballX and ballY are the PAST version of the ball
-        // vel_x and vel_y will be ADDED to ballX and ballY after this function
-
-        //TODO: change vel_x and vel_y to "bounce" off of rim and backboard
+        var true_front_rim_x = rim_front_x + (rim_w / 2); 
+        var true_front_rim_y = rim_front_y + (rim_front_h / 2);
+        var front_rim_collision = checkRectangleCollission(ballX, ballY, true_front_rim_x, true_front_rim_y, rim_w, rim_front_h);
+    
+        var true_back_rim_x = rim_back_x + (rim_w / 2); 
+        var true_back_rim_y = rim_back_y + (rim_back_h / 2);
+        var back_rim_collision = checkRectangleCollission(ballX, ballY, true_back_rim_x, true_back_rim_y, rim_w, rim_front_h);
+        
+        if(front_rim_collision.collided || back_rim_collision.collided){
+            vel_x = back_rim_collision.direction - vel_x * bounce_damp;
+        }
 
         return {
             vel_x: vel_x,
@@ -105,12 +134,15 @@
         // goal_w, goal_h
         // goal_x, goal_y
 
-        //TODO: return TRUE when ball is in goal
+        var true_goal_x = goal_x + (goal_w / 2); 
+        var true_goal_y = goal_y + (goal_h / 2);
+        var goalCollision = checkRectangleCollission(ballX, ballY, true_goal_x, true_goal_y, goal_w, goal_h);
 
-        return false;
+        return goalCollision.collided;
     }
     function onGoal(ballNumber) {
         //TODO: show a visual indicator the user scored
+        console.log(ballNumber);
     }
     function loop(time) {
         // Compute the delta-time against the previous time
@@ -149,7 +181,21 @@
             x += vel_x;
             y -= vel_y;
             if (checkGoal(x, y, ball_w)) {
-                onGoal(+ball.dataset['number']);
+                document.getElementById('goal-count-text').innerText = 'Score: ' + ball.dataset['number'];
+                if(allowGoal){
+                    allowGoal = false;
+                    var b = document.createElement("div");
+                    b.className = 'goal-text';
+                    b.style.left = ((document.body.clientWidth/2) - 150) + 'px';
+                    b.style.bottom = document.body.clientHeight/2 + 'px';
+                    b.innerText = goalMessages[Math.floor(Math.random()*goalMessages.length)];
+                    document.body.appendChild(b);
+
+                    setTimeout(() => {
+                        allowGoal = true;
+                    }, goalCooldown);
+                    onGoal(+ball.dataset['number']);
+                }
             }
             ball.style.bottom = y + 'px';
             ball.style.left = x + 'px';
