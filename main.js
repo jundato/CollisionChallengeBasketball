@@ -17,9 +17,9 @@
     var rim_front_x = goal_x - rim_w; var rim_front_y = goal_y;
     var rim_back_x = goal_x + goal_w; var rim_back_y = goal_y;
 
-    var goalCooldown = 1000;
+    var goalCooldown = 500;
     var allowGoal = true;
-
+    var goalMessages = ['Nice!', 'Good Job!!', 'Awesome!!!']
     var goals = document.getElementsByClassName('goal');
     for (var gi = 0; gi < goals.length; gi++) {
         var g = goals[gi];
@@ -181,8 +181,16 @@
             x += vel_x;
             y -= vel_y;
             if (checkGoal(x, y, ball_w)) {
+                document.getElementById('goal-count-text').innerText = 'Score: ' + ball.dataset['number'];
                 if(allowGoal){
                     allowGoal = false;
+                    var b = document.createElement("div");
+                    b.className = 'goal-text';
+                    b.style.left = ((document.body.clientWidth/2) - 150) + 'px';
+                    b.style.bottom = document.body.clientHeight/2 + 'px';
+                    b.innerText = goalMessages[Math.floor(Math.random()*goalMessages.length)];
+                    document.body.appendChild(b);
+
                     setTimeout(() => {
                         allowGoal = true;
                     }, goalCooldown);
@@ -191,7 +199,7 @@
             }
             ball.style.bottom = y + 'px';
             ball.style.left = x + 'px';
-            ball.children[0].innerText =  x + '|' + y;
+            ball.children[0].innerText = vel_x.toFixed(2) + ',' + vel_y.toFixed(2);
             ball.dataset['x'] = x;
             ball.dataset['vx'] = vel_x;
             ball.dataset['y'] = y;
