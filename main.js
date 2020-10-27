@@ -121,7 +121,9 @@
         var back_rim_collision = checkRectangleCollission(ballX, ballY, true_back_rim_x, true_back_rim_y, rim_w, rim_front_h);
         
         if(front_rim_collision.collided || back_rim_collision.collided){
-            vel_x = back_rim_collision.direction - vel_x * bounce_damp;
+            vel_x = front_rim_collision.collided ? 
+                front_rim_collision.direction - vel_x * bounce_damp :  
+                back_rim_collision.direction - vel_x * bounce_damp;
         }
 
         return {
